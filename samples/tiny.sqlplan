@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-16"?>
+<ShowPlanXML xmlns="http://schemas.microsoft.com/sqlserver/2004/07/showplan" Version="1.564" Build="16.0.4135.4">
+  <BatchSequence>
+    <Batch>
+      <Statements>
+        <StmtSimple StatementCompId="1" StatementId="1" StatementText="SELECT o.OrderId, c.Name FROM Orders o JOIN Customers c ON o.CustomerId = c.CustomerId WHERE c.Region = 'NA';" StatementType="SELECT" StatementSubTreeCost="0.05231" StatementEstRows="120" StatementOptmLevel="FULL">
+          <QueryPlan CachedPlanSize="32" CompileTime="3" CompileCPU="3" CompileMemory="384">
+            <MissingIndexes>
+              <MissingIndexGroup Impact="78.4">
+                <MissingIndex Database="[Sales]" Schema="[dbo]" Table="[Customers]">
+                  <ColumnGroup Usage="EQUALITY">
+                    <Column Name="[Region]" ColumnId="3"/>
+                  </ColumnGroup>
+                  <ColumnGroup Usage="INCLUDE">
+                    <Column Name="[Name]" ColumnId="2"/>
+                  </ColumnGroup>
+                </MissingIndex>
+              </MissingIndexGroup>
+            </MissingIndexes>
+            <Warnings>
+              <ColumnsWithNoStatistics>
+                <ColumnReference Database="[Sales]" Schema="[dbo]" Table="[Customers]" Column="Region"/>
+              </ColumnsWithNoStatistics>
+            </Warnings>
+            <ParameterList>
+              <ColumnReference Column="@Region" ParameterCompiledValue="N'NA'" ParameterRuntimeValue="N'NA'"/>
+            </ParameterList>
+            <RelOp NodeId="0" PhysicalOp="Nested Loops" LogicalOp="Inner Join" EstimateRows="120" EstimateIO="0" EstimateCPU="0.00012" AvgRowSize="38" EstimatedTotalSubtreeCost="0.05231" Parallel="false" EstimateRebinds="0" EstimateRewinds="0" EstimatedOperatorCost="0.00012">
+              <OutputList>
+                <ColumnReference Database="[Sales]" Schema="[dbo]" Table="[Orders]" Alias="[o]" Column="OrderId"/>
+                <ColumnReference Database="[Sales]" Schema="[dbo]" Table="[Customers]" Alias="[c]" Column="Name"/>
+              </OutputList>
+              <RunTimeInformation>
+                <RunTimeCountersPerThread Thread="0" ActualRows="120" ActualEndOfScans="1" ActualExecutions="1" ActualCPUms="2" ActualElapsedms="4" ActualLogicalReads="0" ActualPhysicalReads="0" ActualReadAheads="0"/>
+              </RunTimeInformation>
+              <NestedLoops Optimized="false">
+                <OuterReferences>
+                  <ColumnReference Column="Uniq1001"/>
+                </OuterReferences>
+                <RelOp NodeId="1" PhysicalOp="Index Scan" LogicalOp="Index Scan" EstimateRows="40" EstimateIO="0.003125" EstimateCPU="0.000584" AvgRowSize="22" EstimatedTotalSubtreeCost="0.003709" Parallel="false" EstimatedOperatorCost="0.003709">
+                  <OutputList>
+                    <ColumnReference Database="[Sales]" Schema="[dbo]" Table="[Customers]" Alias="[c]" Column="CustomerId"/>
+                    <ColumnReference Database="[Sales]" Schema="[dbo]" Table="[Customers]" Alias="[c]" Column="Name"/>
+                  </OutputList>
+                  <RunTimeInformation>
+                    <RunTimeCountersPerThread Thread="0" ActualRows="40" ActualEndOfScans="1" ActualExecutions="1" ActualCPUms="1" ActualElapsedms="1" ActualLogicalReads="3" ActualPhysicalReads="0" ActualReadAheads="0"/>
+                  </RunTimeInformation>
+                  <IndexScan Ordered="false" ForcedIndex="false" NoExpandHint="false">
+                    <DefinedValues>
+                      <DefinedValue>
+                        <ColumnReference Database="[Sales]" Schema="[dbo]" Table="[Customers]" Alias="[c]" Column="CustomerId"/>
+                      </DefinedValue>
+                    </DefinedValues>
+                    <Object Database="[Sales]" Schema="[dbo]" Table="[Customers]" Index="[PK_Customers]" Alias="[c]" IndexKind="Clustered" Storage="RowStore"/>
+                    <Predicate>
+                      <ScalarOperator ScalarString="[Sales].[dbo].[Customers].[Region]=N'NA'">
+                        <Compare CompareOp="EQ"/>
+                      </ScalarOperator>
+                    </Predicate>
+                  </IndexScan>
+                </RelOp>
+                <RelOp NodeId="2" PhysicalOp="Index Seek" LogicalOp="Index Seek" EstimateRows="3" EstimateIO="0.003125" EstimateCPU="0.000158" AvgRowSize="16" EstimatedTotalSubtreeCost="0.048601" Parallel="false" EstimatedOperatorCost="0.003283" EstimateRebinds="40" EstimateRewinds="0">
+                  <OutputList>
+                    <ColumnReference Database="[Sales]" Schema="[dbo]" Table="[Orders]" Alias="[o]" Column="OrderId"/>
+                  </OutputList>
+                  <RunTimeInformation>
+                    <RunTimeCountersPerThread Thread="0" ActualRows="120" ActualEndOfScans="40" ActualExecutions="40" ActualCPUms="3" ActualElapsedms="3" ActualLogicalReads="80" ActualPhysicalReads="0" ActualReadAheads="0"/>
+                  </RunTimeInformation>
+                  <IndexScan Ordered="true" ForcedIndex="false" ForceSeek="false" ForceScan="false" NoExpandHint="false">
+                    <Object Database="[Sales]" Schema="[dbo]" Table="[Orders]" Index="[IX_Orders_CustomerId]" Alias="[o]" IndexKind="NonClustered" Storage="RowStore"/>
+                  </IndexScan>
+                </RelOp>
+              </NestedLoops>
+            </RelOp>
+          </QueryPlan>
+        </StmtSimple>
+      </Statements>
+    </Batch>
+  </BatchSequence>
+</ShowPlanXML>
