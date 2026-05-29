@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 #include "showplan/showplan.hpp"
+#include "showplan/profile.hpp"
 
 #include "pugixml.hpp"
 
@@ -555,6 +556,7 @@ void collect_databases(const PlanNode* n,
 }  // namespace
 
 Plan parse_xml(std::string_view xml) {
+    SP_ZONE_N("showplan::parse_xml");
     pugi::xml_document doc;
     auto load = doc.load_buffer(xml.data(), xml.size(),
                                 pugi::parse_default,
