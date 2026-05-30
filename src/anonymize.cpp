@@ -44,15 +44,28 @@ std::string lower(std::string_view s) {
 
 }  // namespace
 
-std::string AnonymizeMapper::rewrite(std::string_view xml) {
+std::string AnonymizeMapper::ensure(std::string_view name) {
+    if (name.empty()) return {};
+    std::string key = lower(name);
+    auto it = by_name_.find(key);
+    if (it != by_name_.end()) return it->second;
+    char buf[32];
+    std::snprintf(buf, sizeof(buf), "Other_%d", ++next_other_);
+    std::string replacement = buf;
+    by_name_.emplace(std::move(key), replacement);
+    return replacement;
+}
+
+std::string AnonymizeMapper::rewrite(std::string_view xml,
+                                     const SqlRewriter& sql_rewriter) {
     pugi::xml_document doc;
     auto load = doc.load_buffer(xml.data(), xml.size(), pugi::parse_default,
                                 pugi::encoding_auto);
     if (!load) return std::string{xml};  // unparseable; pass through unchanged
 
-    // Walk every element, examine every attribute, replace identifier-bearing
-    // ones via category-specific counters. pugixml's recursive iteration is
-    // depth-first which is fine; order determines numbering.
+    // Pass 1: identifier-bearing attributes. Builds / extends the
+    // mapping as we go. pugixml's recursive iteration is depth-first
+    // which is fine; order determines numbering.
     struct Walker : pugi::xml_tree_walker {
         AnonymizeMapper* m;
         bool for_each(pugi::xml_node& n) override {
@@ -97,6 +110,28 @@ std::string AnonymizeMapper::rewrite(std::string_view xml) {
     };
     Walker w; w.m = this;
     doc.traverse(w);
+
+    // Pass 2: SQL-fragment attributes. Mapping is now complete.
+    if (sql_rewriter) {
+        struct SqlWalker : pugi::xml_tree_walker {
+            const SqlRewriter* rw;
+            bool for_each(pugi::xml_node& n) override {
+                if (n.type() != pugi::node_element) return true;
+                for (pugi::xml_attribute a : n.attributes()) {
+                    const char* name = a.name();
+                    if (std::strcmp(name, "StatementText") != 0 &&
+                        std::strcmp(name, "ScalarString") != 0) continue;
+                    const char* value = a.value();
+                    if (!value || !*value) continue;
+                    std::string rewritten = (*rw)(value);
+                    a.set_value(rewritten.c_str());
+                }
+                return true;
+            }
+        };
+        SqlWalker sw; sw.rw = &sql_rewriter;
+        doc.traverse(sw);
+    }
 
     struct Sink : pugi::xml_writer {
         std::string out;
